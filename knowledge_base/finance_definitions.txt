@@ -1,0 +1,123 @@
+
+# Financial Glossary – High-Level, Safe, Non-Advisory
+
+1. Asset: Anything with economic value that can be owned or controlled.
+2. Liability: A financial obligation or debt owed to another party.
+3. Equity: Ownership interest in a company represented by shares.
+4. Capital: Money or assets used to invest or grow a business.
+5. Investment: Allocation of money into assets expecting future returns.
+6. Return: The gain or loss on an investment.
+7. Risk: The chance that actual returns differ from expected returns.
+8. Diversification: Reducing risk by spreading investments across assets.
+9. Portfolio: A collection of investments owned by an individual or firm.
+10. Asset Allocation: The distribution of investments across asset classes.
+11. Mutual Fund: A pooled investment vehicle holding diversified assets.
+12. ETF (Exchange-Traded Fund): A fund that trades like a stock but holds a basket of assets.
+13. Hedge Fund: Privately managed fund using advanced investment strategies.
+14. Private Equity: Investment in private companies or buyouts of public ones.
+15. Venture Capital: Funding provided to early-stage high-growth companies.
+16. Fixed Income: Investments providing regular interest payments.
+17. Bonds: Debt securities issued by governments or corporations.
+18. Treasury Bills: Short-term government debt instruments.
+19. Corporate Bonds: Bonds issued by companies to raise capital.
+20. Government Securities: Debt issued by a national government.
+21. Yield: The income return on an investment, usually expressed annually.
+22. Compounding: Earning returns on previously earned returns.
+23. NAV (Net Asset Value): Value per unit of a fund.
+24. AUM (Assets Under Management): Total market value managed by an institution.
+25. Market Capitalization: Total value of a company’s outstanding shares.
+26. Blue-Chip Stocks: Shares of large and financially stable companies.
+27. Small-Cap Stocks: Shares of smaller companies with growth potential.
+28. Mid-Cap Stocks: Stocks of medium-sized companies.
+29. Large-Cap Stocks: Stocks of major corporations.
+30. Dividend: Portion of company profits paid to shareholders.
+31. Earnings Per Share (EPS): Company profit divided by outstanding shares.
+32. P/E Ratio: Price divided by earnings per share.
+33. Valuation: Process of determining an asset’s worth.
+34. Liquidity: How quickly an asset can be converted into cash.
+35. Inflation: Rise in general price levels over time.
+36. Deflation: Decrease in price levels.
+37. Interest Rate: Cost of borrowing money.
+38. Repo Rate: Rate at which central banks lend to commercial banks.
+39. Reverse Repo Rate: Rate at which banks deposit money with central banks.
+40. Monetary Policy: Central bank actions controlling money supply and rates.
+41. Fiscal Policy: Government decisions on spending and taxation.
+42. GDP (Gross Domestic Product): Total value of goods and services produced.
+43. CPI (Consumer Price Index): Measure of inflation based on consumer prices.
+44. Market Index: Benchmark representing market performance.
+45. Sensex: Indian stock market index of 30 major companies.
+46. Nifty 50: Index of 50 Indian blue-chip companies.
+47. Stock Exchange: Marketplace for buying and selling securities.
+48. Primary Market: Where new securities are issued.
+49. Secondary Market: Where investors trade existing securities.
+50. IPO (Initial Public Offering): When a company sells shares to public for first time.
+51. FPO: Follow-on Public Offer after IPO.
+52. Buyback: When a company repurchases its own shares.
+53. Market Volatility: Degree of price fluctuation in markets.
+54. Bull Market: Period of rising asset prices.
+55. Bear Market: Period of declining asset prices.
+56. Stop-Loss: Predefined price at which an investor exits a trade.
+57. Asset Management Company (AMC): Manages investments for clients.
+58. Wealth Management: Advisory and investment services for individuals.
+59. Financial Planning: Organizing finances to meet long-term goals.
+60. Fund Manager: Professional responsible for managing investment funds.
+61. Expense Ratio: Annual cost of managing a fund.
+62. Sharpe Ratio: Reward-to-risk measure for investments.
+63. Beta: Measure of a stock’s volatility relative to the market.
+64. Alpha: Excess return above benchmark.
+65. Risk Profile: An investor’s comfort level with risk.
+66. Credit Score: Rating representing an individual's creditworthiness.
+67. Collateral: Asset pledged to secure a loan.
+68. Loan-to-Value Ratio: Measure comparing loan amount to asset value.
+69. Fixed Deposit (FD): Fixed-return savings instrument offered by banks.
+70. Recurring Deposit (RD): Deposit where money is added monthly.
+71. Savings Account: Bank account for basic savings and interest.
+72. Current Account: Account for business transactions.
+73. Credit Card: Card allowing purchases on borrowed money.
+74. Debit Card: Card enabling spending from bank balance.
+75. EMI (Equated Monthly Installment): Monthly loan repayment.
+76. Mortgage: Loan used to buy property.
+77. Real Estate Investment Trust (REIT): Company owning or financing real estate.
+78. Commodities: Physical goods like gold, oil, or grains.
+79. Derivatives: Financial contracts based on underlying assets.
+80. Futures: Contract to buy or sell an asset at a future date.
+81. Options: Contracts giving the right but not obligation to buy or sell.
+82. Margin: Borrowed money used to trade financial instruments.
+83. Leverage: Using debt to increase potential returns.
+84. Short Selling: Selling borrowed shares hoping to buy them back cheaper.
+85. Inflation Hedge: Asset used to protect against rising prices.
+86. Safe Haven Asset: Asset that retains value in market stress (e.g., gold).
+87. Asset Bubble: When asset prices rise far above fundamental value.
+88. Credit Risk: Risk of borrower defaulting.
+89. Market Risk: Risk due to market fluctuations.
+90. Operational Risk: Risk from failed systems or processes.
+91. Systematic Risk: Market-wide risk.
+92. Unsystematic Risk: Company-specific risk.
+93. Benchmark: Reference index used to measure performance.
+94. Time Horizon: Duration an investor plans to stay invested.
+95. SIP (Systematic Investment Plan): Periodic mutual fund investment method.
+96. Lump Sum Investment: One-time investment amount.
+97. KYC: Verification process to confirm identity.
+98. Nominee: Individual who receives assets upon the investor’s death.
+99. Trustee: Person or company managing assets on behalf of another.
+100. Fund House: Institution managing multiple investment funds.
+101. Custodian: Entity safeguarding financial assets.
+102. Clearing House: Facilitates settlement of trades.
+103. Brokerage: Firm enabling buying/selling of securities.
+104. Brokerage Fee: Charge for executing trades.
+105. Market Order: Order to buy/sell immediately at best price.
+106. Limit Order: Order to trade at a preset price.
+107. Volatility Index (VIX): Measure of expected market volatility.
+108. Inflation-Indexed Bonds: Bonds protected against inflation.
+109. Credit Rating: Evaluation of creditworthiness of issuer.
+110. Discount Rate: Rate used to calculate present value of future cash flows.
+111. Capital Gains: Profit from selling an asset.
+112. Holding Period: Duration an investment is held.
+113. Asset Rebalancing: Adjusting portfolio to target allocation.
+114. ESG Investing: Considering environmental, social, and governance factors.
+115. Fund Benchmarking: Comparing fund performance against a standard.
+116. Financial Literacy: Understanding basic financial concepts.
+117. Working Capital: Money needed for day-to-day operations.
+118. Cash Flow: Amount of cash coming in and going out.
+119. Balance Sheet: Statement showing assets, liabilities, and equity.
+120. Income Statement: Statement showing revenue and profit of a company.
