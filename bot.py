@@ -10,29 +10,67 @@ from typing import List
 from dotenv import load_dotenv
 load_dotenv()  # <---- loads .env automatically
 
-# --- Embedding + Vector DB (Chroma) ---
-try:
-    from sentence_transformers import SentenceTransformer
-    import chromadb
-except Exception as e:
-    raise ImportError("Missing required packages. Run: pip install chromadb sentence-transformers requests") from e
+# --- Embedding + Vector DB (Chroma) — Streamlit Cloud Safe (In-Memory) ---
+import glob
+from sentence_transformers import SentenceTransformer
+import chromadb
 
-
-# --- Config for Chroma ---
-CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "knowledge_base")
-COLLECTION_NAME = os.environ.get("CHROMA_COLLECTION_NAME", "aryzen_finance")
-
+COLLECTION_NAME = "aryzen_finance"
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-try:
-    client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-except Exception:
-    client = chromadb.Client()
+# Always use in-memory Chroma (persistent mode breaks on Streamlit Cloud)
+client = chromadb.Client()
 
+# Create fresh collection every startup (safe for cloud)
 try:
     collection = client.get_collection(COLLECTION_NAME)
-except Exception:
+except:
     collection = client.create_collection(name=COLLECTION_NAME)
+
+# -----------------------------
+# AUTOMATIC INGESTION from knowledge_base/
+# -----------------------------
+BASE_PATH = "knowledge_base"
+
+def load_documents():
+    docs = []
+    ids = []
+
+    patterns = ["*.txt", "*.md", "*.json"]
+
+    for pattern in patterns:
+        for file in glob.glob(f"{BASE_PATH}/{pattern}"):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    text = f.read().strip()
+                    if len(text) > 5:
+                        docs.append(text)
+                        ids.append(file.replace("/", "_"))
+            except:
+                pass
+
+    return ids, docs
+
+
+def ingest_documents():
+    ids, docs = load_documents()
+
+    if not docs:
+        print("No documents found inside knowledge_base/.")
+        return
+
+    print(f"Ingesting {len(docs)} documents from knowledge_base/...")
+
+    embeddings = embedder.encode(docs).tolist()
+    collection.add(
+        ids=ids,
+        documents=docs,
+        embeddings=embeddings
+    )
+
+# Run ingestion automatically when bot.py loads
+ingest_documents()
+
 
 
 # -------------------------

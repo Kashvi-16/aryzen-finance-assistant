@@ -9,7 +9,7 @@ LOGO = os.path.join("assets", "logo.png")
 USER_AVATAR = os.path.join("assets", "user.png")
 BOT_AVATAR = os.path.join("assets", "bot.png")
 
-st.set_page_config(page_title="Aryzen Finance Assistant", page_icon="💼", layout="centered")
+st.set_page_config(page_title="Aryzen Finance Assistant", layout="centered")
 
 # -------------------------
 # CSS: navy + gold + layout
