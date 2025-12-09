@@ -6,9 +6,6 @@ import json
 import requests
 from typing import List
 
-# --- NEW: Load dotenv ---
-from dotenv import load_dotenv
-load_dotenv()  # <---- loads .env automatically
 
 # --- Embedding + Vector DB (Chroma) — Streamlit Cloud Safe (In-Memory) ---
 import glob
@@ -16,7 +13,8 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 
 COLLECTION_NAME = "aryzen_finance"
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+embedder = SentenceTransformer("sentence-transformers/paraphrase-MiniLM-L3-v2")
+
 
 # Always use in-memory Chroma (persistent mode breaks on Streamlit Cloud)
 client = chromadb.Client()
@@ -77,37 +75,21 @@ ingest_documents()
 # Load OpenRouter API key (Now includes dotenv!!!)
 # -------------------------
 def load_openrouter_key() -> str:
-    """
-    Priority for loading API key:
-    1. .env → OPENROUTER_API_KEY
-    2. Environment variable
-    3. AWS Secrets Manager (optional)
-    """
+    # 1. Load from Streamlit Secrets if available
+    try:
+        import streamlit as st
+        if "OPENROUTER_API_KEY" in st.secrets:
+            return st.secrets["OPENROUTER_API_KEY"]
+    except Exception:
+        pass
 
-    # LOAD FROM .env (dotenv) — NEW
+    # 2. Load from environment (local)
     key = os.environ.get("OPENROUTER_API_KEY")
     if key:
         return key.strip()
 
-    # LOAD FROM AWS Secrets Manager if configured
-    secret_name = os.environ.get("OPENROUTER_SECRET_NAME")
-    if secret_name:
-        try:
-            import boto3
-            sm = boto3.client("secretsmanager")
-            resp = sm.get_secret_value(SecretId=secret_name)
-            secret = json.loads(resp["SecretString"])
-            for k in ("api_key", "openrouter_api_key", "OPENROUTER_API_KEY", "key"):
-                if k in secret:
-                    return secret[k].strip()
-        except Exception:
-            pass
+    raise EnvironmentError("No OpenRouter API key found.")
 
-    raise EnvironmentError(
-        "OpenRouter API key not found.\n"
-        "Create a .env file containing:\n"
-        "OPENROUTER_API_KEY=yourkeyhere\n"
-    )
 
 
 # Load key now
