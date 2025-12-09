@@ -13,7 +13,8 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 
 COLLECTION_NAME = "aryzen_finance"
-embedder = SentenceTransformer("sentence-transformers/paraphrase-MiniLM-L3-v2")
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = "/mnt/data"
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 # Always use in-memory Chroma (persistent mode breaks on Streamlit Cloud)
