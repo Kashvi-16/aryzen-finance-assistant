@@ -1,175 +1,245 @@
-# app.py — refined UI based on your last working code
-import streamlit as st
-from bot import chatbot  # your backend
+# bot.py
+# Aryzen chatbot backend (guardrails + retrieval + OpenRouter/DeepSeek)
+
 import os
-import re
+import json
+import requests
+from typing import List
+import glob
+import chromadb
+from sentence_transformers import SentenceTransformer
 
-# Page settings
-LOGO = os.path.join("assets", "logo.png")
-USER_AVATAR = os.path.join("assets", "user.png")
-BOT_AVATAR = os.path.join("assets", "bot.png")
 
-st.set_page_config(page_title="Aryzen Finance Assistant", layout="centered")
+# --------------------------------------
+# Embedding model (lightweight, cloud-safe)
+# --------------------------------------
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = "/mnt/data"
+embedder = SentenceTransformer("sentence-transformers/paraphrase-MiniLM-L3-v2")
 
-# -------------------------
-# CSS: navy + gold + layout
-# -------------------------
-st.markdown(
-    """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+COLLECTION_NAME = "aryzen_finance"
 
-:root{
-  --navy: #0B2F58;
-  --dark: #333333;
-  --emerald: #2E7D32;
-  --gold: #FFD700;
-  --bg: #ffffff;
-  --card: #F5F5F5;
-}
+# In-memory Chroma (NO SQLite)
+client = chromadb.Client()
 
-/* Page */
-section.main {
-  background: var(--bg);
-}
+# Create new collection each startup
+try:
+    collection = client.get_collection(COLLECTION_NAME)
+except:
+    collection = client.create_collection(name=COLLECTION_NAME)
 
-/* Headings */
-h1 { font-family: 'Lora', serif; color: var(--navy); font-size:32px; }
-p, label, input, textarea { font-family: 'Inter', sans-serif; color: var(--dark); }
 
-/* Input box */
-.stTextInput>div>div>input, .stTextArea>div>div>textarea {
-  border-radius: 10px !important;
-  border: 1px solid rgba(11,47,88,0.12) !important;
-  padding: 12px !important;
-  background: #666;
-}
+# --------------------------------------
+# Load documents from knowledge_base/
+# --------------------------------------
+BASE_PATH = "knowledge_base"
 
-/* Buttons: gold */
-.stButton>button {
-  background-color: var(--gold) !important;
-  color: #000 !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  padding: 8px 18px !important;
-  border: none !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-}
+def load_documents():
+    docs, ids = [], []
+    patterns = ["*.txt", "*.md", "*.json"]
 
-/* Chat bubbles */
-.user-msg {
-  background-color: var(--navy);
-  color: #ffffff;
-  padding: 12px 16px;
-  border-radius: 14px;
-  display: inline-block;
-  max-width: 80%;
-  line-height: 1.5;
-}
-.bot-msg {
-  background-color: var(--card);
-  color: var(--dark);
-  padding: 12px 16px;
-  border-left: 4px solid var(--emerald);
-  border-radius: 10px;
-  display: inline-block;
-  max-width: 80%;
-  line-height: 1.5;
-}
+    for p in patterns:
+        for file in glob.glob(f"{BASE_PATH}/{p}"):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    text = f.read().strip()
+                    if len(text) > 5:
+                        docs.append(text)
+                        ids.append(file.replace("/", "_"))
+            except:
+                pass
+    return ids, docs
 
-/* Avatar */
-.avatar {
-  width:48px; height:48px; border-radius:50%; object-fit:cover;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
 
-/* small spacing tweaks */
-.chat-row { margin-bottom: 12px; padding-top:6px; padding-bottom:6px; }
-</style>
-""",
-    unsafe_allow_html=True,
-)
+def ingest_documents():
+    ids, docs = load_documents()
+    if not docs:
+        print("No knowledge base documents loaded.")
+        return
 
-# -------------------------
-# Header
-# -------------------------
-cols = st.columns([0.12, 0.88])
-with cols[0]:
-    if os.path.exists(LOGO):
-        st.image(LOGO, width=96)
-with cols[1]:
-    st.markdown("<h1>Aryzen Finance Assistant</h1>", unsafe_allow_html=True)
-    st.write("Trusted answers on **Aryzen Capital Advisors** and **financial terminology**.")
+    print(f"Ingesting {len(docs)} docs into vector DB...")
+    embeddings = embedder.encode(docs).tolist()
 
-# -------------------------
-# Chat history session
-# -------------------------
-if "history" not in st.session_state:
-    st.session_state["history"] = []  # list of tuples: (role, text)
+    collection.add(
+        ids=ids,
+        documents=docs,
+        embeddings=embeddings
+    )
 
-# -------------------------
-# Helper: safely show avatar image (no PIL errors)
-# -------------------------
-def safe_image(path, width=48):
-    """
-    Show image if path exists and is a file readable by Streamlit.
-    Avoid calling PIL on invalid bytes.
-    """
+
+# Run ingestion automatically
+ingest_documents()
+
+
+# --------------------------------------
+# Load OpenRouter API Key (Streamlit Secrets)
+# --------------------------------------
+def load_openrouter_key() -> str:
+    # Streamlit Cloud Secrets
     try:
-        if path and os.path.exists(path) and os.path.isfile(path):
-            st.image(path, width=width)
-            return True
-    except Exception:
-        # do nothing (avoid crashing UI)
+        import streamlit as st
+        if "OPENROUTER_API_KEY" in st.secrets:
+            return st.secrets["OPENROUTER_API_KEY"]
+    except:
         pass
-    return False
 
-# -------------------------
-# Render function: left avatar + right bubble for bot/user
-# -------------------------
-def render_message(role, text):
-    # Use two columns: avatar (small) + bubble (large)
-    col_avatar, col_bubble = st.columns([0.08, 0.92])
-    with col_avatar:
-        if role == "You":
-            safe_image(USER_AVATAR, width=48)
-        else:
-            safe_image(BOT_AVATAR, width=48)
-    with col_bubble:
-        # Decide bubble class
-        bubble_class = "user-msg" if role == "You" else "bot-msg"
-        # Render markdown safely (we assume bot returns markdown/plain text)
-        st.markdown(f"<div class='chat-row'><div class='{bubble_class}'>{text}</div></div>", unsafe_allow_html=True)
+    # Local environment variable
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if key:
+        return key.strip()
 
-# render history
-for r, m in st.session_state["history"]:
-    render_message(r, m)
+    raise EnvironmentError("OpenRouter API key not found.")
 
-# -------------------------
-# Input area
-# -------------------------
-query = st.text_input("Ask your question:")
 
-# send logic: append to history and call backend; do NOT call experimental_rerun
-if st.button("Send"):
+try:
+    OPENROUTER_API_KEY = load_openrouter_key()
+except:
+    OPENROUTER_API_KEY = None
+
+
+# --------------------------------------
+# Helper: clean model output formatting
+# --------------------------------------
+def format_response(raw_text: str) -> str:
+    if not raw_text:
+        return "No response from model."
+
+    text = raw_text.strip()
+
+    # If it's already Markdown/bullets
+    if ("###" in text) or ("\n- " in text) or ("\n* " in text):
+        while "\n\n\n" in text:
+            text = text.replace("\n\n\n", "\n\n")
+        return text
+
+    # Otherwise structure it
+    sentences = [s.strip() for s in text.split(". ") if s.strip()]
+    if not sentences:
+        return text
+
+    short = sentences[0].rstrip(".")
+    remaining = ". ".join(sentences[1:]).strip()
+
+    out = f"### Answer\n\n{short}.\n"
+    if remaining:
+        out += f"\n### Details\n\n{remaining}"
+    return out
+
+
+# --------------------------------------
+# Retrieval from vector DB
+# --------------------------------------
+def get_context(query: str, n_results=4):
+    if not query:
+        return []
+
+    q_emb = embedder.encode(query).tolist()
+
+    try:
+        results = collection.query(query_embeddings=[q_emb], n_results=n_results)
+    except:
+        return []
+
+    docs = results.get("documents", [])
+    if isinstance(docs, list) and len(docs) > 0 and isinstance(docs[0], list):
+        docs = docs[0]
+
+    return [d for d in docs if d]
+
+
+# --------------------------------------
+# CHATBOT FUNCTION
+# --------------------------------------
+def chatbot(query: str) -> str:
     if not query.strip():
-        st.warning("Please enter a question.")
-    else:
-        # show user message locally
-        st.session_state["history"].append(("You", query))
-        # call your backend synchronously
-        try:
-            answer = chatbot(query)
-        except Exception as e:
-            answer = f"Error from backend: {e}"
-        st.session_state["history"].append(("Bot", answer))
-        # Do NOT attempt to programmatically rerun; the button click already triggers re-run.
+        return "Please ask a question related to Aryzen or basic finance."
 
-# ----------------------------------
-# Small hint + footer
-# ----------------------------------
-st.markdown("---")
-st.markdown("**Note:** This assistant answers Aryzen-related and basic finance questions only. It does not provide investment advice.")
+    q = query.lower()
+
+    # Forbidden financial advice terms
+    banned = [
+        "buy", "sell", "stock", "prediction", "future price",
+        "crypto", "bitcoin", "ethereum", "portfolio",
+        "advice", "recommend", "should i", "loan",
+        "tax", "insurance", "policy", "predict"
+    ]
+    for b in banned:
+        if b in q:
+            return "I’m sorry — I cannot provide investment advice or predictions."
+
+    # Allowed categories
+    finance_terms = [
+        "nav", "inflation", "deflation", "assets", "liabilities", "aum",
+        "capital", "risk", "valuation", "equity", "bond", "fund",
+        "market cap", "etf", "mutual fund", "expense ratio"
+    ]
+
+    aryzen_terms = ["aryzen", "aryzen capital", "aryzen advisors", "aryzen team"]
+
+    if not any(t in q for t in finance_terms) and not any(t in q for t in aryzen_terms):
+        return "I answer only questions related to **Aryzen** or **basic finance concepts**."
+
+    # Retrieve context
+    context_docs = get_context(query)
+    context_text = "\n\n".join(context_docs) if context_docs else ""
+
+    system_message = (
+        "You are a corporate assistant for Aryzen Capital Advisors LLP. "
+        "ONLY answer questions about Aryzen or basic finance terms. "
+        "NEVER provide investment advice, predictions, or recommendations."
+    )
+
+    messages = [{"role": "system", "content": system_message}]
+    if context_text:
+        messages.append({"role": "system", "content": f"Context:\n{context_text}"})
+    messages.append({"role": "user", "content": query})
+
+    if OPENROUTER_API_KEY is None:
+        return "API key missing. Add OPENROUTER_API_KEY in Streamlit Secrets."
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "X-API-Key": OPENROUTER_API_KEY,
+        "HTTP-Referer": "https://streamlit.io",
+        "X-Title": "aryzen-finance-assistant",
+        "Content-Type": "application/json",
+    }
+
+    # --- FIXED: Correct DeepSeek model + real error reporting ---
+    try:
+        r = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json={
+                "model": "deepseek/deepseek-v3",
+                "messages": messages
+            },
+            timeout=40
+        )
+
+        data = r.json()
+
+        # If OpenRouter returns an error → show it
+        if "error" in data:
+            return f"API Error: {data['error']['message']}"
+
+        return f"RAW API RESPONSE:\n\n{json.dumps(data, indent=2)}"
+
+        
+
+    except Exception as e:
+        return f"Request failed: {e}"
+
+
+# --------------------------------------
+# Local test mode
+# --------------------------------------
+if __name__ == "__main__":
+    while True:
+        q = input("\nAsk: ")
+        print(chatbot(q))
+
+
+
 
 
 
