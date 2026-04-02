@@ -1,4 +1,6 @@
-Aryzen AI Assistant
+**Aryzen AI Assistant**
+
+
 Your trusted AI for smart financial clarity — strictly scoped, safely guardrailed, and live on AWS.
 🎯 Problem Statement
 Financial services companies need AI assistants that are helpful but strictly controlled — a general-purpose LLM will happily give investment advice, discuss competitors, or go completely off-topic, creating legal and reputational risk.
